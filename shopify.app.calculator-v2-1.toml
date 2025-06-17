@@ -3,7 +3,7 @@
 client_id = "ad0eb653ea82f061bb52d25fbed90b69"
 name = "Mi Calculadora"
 handle = "calculator-v2-2"
-application_url = "https://example.com/"
+application_url = "https://shopify-bowls-app.vercel.app/"
 embedded = true
 
 [build]
@@ -17,7 +17,7 @@ api_version = "2025-04"
 scopes = "write_metaobject_definitions,write_metaobjects,write_products"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://shopify-bowls-app.vercel.app/api/auth" ]
 
 [pos]
 embedded = false
