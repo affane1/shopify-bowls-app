@@ -1,0 +1,225 @@
+
+{%- liquid
+  assign all_ingredients = shop.metaobjects.metaingredientes.values
+  assign bowl_models = shop.metaobjects.bowl_model.values
+  assign category_order = shop.metafields.custom.category_order.value | default: '[]'
+  assign ingredient_order = shop.metafields.custom.ingredient_order.value | default: '{}'
+-%}
+
+<div class="bc-calculator-wrapper" data-calculator-root>
+  <div class="bc-loader">
+    <div class="bc-spinner"></div>
+    <p>{{ section.settings.loading_text }}</p>
+  </div>
+  
+  <div class="bc-calculator-content" style="display: none;">
+    <!-- Step 1: Bowl Model Selection -->
+    <div class="bc-section">
+      <h2 class="bc-heading-lg">{{ section.settings.step_1_title }}</h2>
+      {% if section.settings.step_1_description != blank %}
+        <p class="bc-step-description">{{ section.settings.step_1_description }}</p>
+      {% endif %}
+      <div class="bc-model-selector" data-bowl-model-container></div>
+    </div>
+
+    <!-- This container will be shown only after a bowl model is selected -->
+    <div class="bc-ingredients-section-wrapper" data-ingredients-wrapper style="display: none;">
+      <div class="bc-ingredients-main-column">
+        <div class="bc-section">
+          <h2 class="bc-heading-lg">{{ section.settings.step_2_title }}</h2>
+          {% if section.settings.step_2_description != blank %}
+            <p class="bc-step-description">{{ section.settings.step_2_description }}</p>
+          {% endif %}
+          <div class="bc-ingredient-categories" data-ingredient-categories-container></div>
+        </div>
+      </div>
+      <div class="bc-summary-side-column">
+        <div class="bc-summary-sticky-container" data-summary-container></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" data-calculator-data>
+  {
+    "ingredients": [
+      {%- for ingredient in all_ingredients -%}
+        {
+          "id": {{ ingredient.system.id | json }},
+          "nombre": {{ ingredient.nombre | json }},
+          "categoria": {{ ingredient.categoria | json }},
+          "calorias": {{ ingredient.calorias | default: 0 }},
+          "proteinas": {{ ingredient.proteinas | default: 0 }},
+          "carbohidratos": {{ ingredient.carbohidratos | default: 0 }},
+          "grasas": {{ ingredient.grasas | default: 0 }},
+          "extraPrecio": {{ ingredient.extra_precio.value | divided_by: 100.0 | default: 0.0 }}
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ],
+    "bowlModels": [
+       {%- for model in bowl_models -%}
+        {
+          "id": {{ model.system.id | json }},
+          "name": {{ model.name | json }},
+          "description": {{ model.description | json }},
+          "basePrice": {{ model.base_price.value | divided_by: 100.0 | default: 0.0 }},
+          "limits": {{ model.category_limits.value | default: '[]' | json }}
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ],
+    "categoryOrder": {{ category_order | json }},
+    "ingredientOrder": {{ ingredient_order | json }},
+    "settings": {
+      "addToCartText": {{ section.settings.add_to_cart_text | json }},
+      "limitWarningText": {{ section.settings.limit_warning_text | json }},
+      "selectedText": {{ section.settings.selected_text | json }},
+      "selectText": {{ section.settings.select_text | json }},
+      "baseText": {{ section.settings.base_text | json }},
+      "extrasText": {{ section.settings.extras_text | json }},
+      "totalText": {{ section.settings.total_text | json }},
+      "nutritionText": {{ section.settings.nutrition_text | json }},
+      "ingredientsText": {{ section.settings.ingredients_text | json }},
+      "orderSummaryText": {{ section.settings.order_summary_text | json }}
+    }
+  }
+</script>
+
+{{ 'bowl-calculator.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'bowl-calculator.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Bowl Calculator",
+  "target": "section",
+  "class": "bowl-calculator-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Step 1 - Bowl Selection"
+    },
+    {
+      "type": "text",
+      "id": "step_1_title",
+      "label": "Step 1 Title",
+      "default": "1. Elige tu Bowl"
+    },
+    {
+      "type": "textarea",
+      "id": "step_1_description",
+      "label": "Step 1 Description",
+      "info": "Optional description below the title"
+    },
+    {
+      "type": "header",
+      "content": "Step 2 - Ingredient Selection"
+    },
+    {
+      "type": "text",
+      "id": "step_2_title",
+      "label": "Step 2 Title",
+      "default": "2. Crea tu combinación"
+    },
+    {
+      "type": "textarea",
+      "id": "step_2_description",
+      "label": "Step 2 Description",
+      "info": "Optional description below the title"
+    },
+    {
+      "type": "header",
+      "content": "Text Content"
+    },
+    {
+      "type": "text",
+      "id": "loading_text",
+      "label": "Loading Text",
+      "default": "Cargando calculadora..."
+    },
+    {
+      "type": "text",
+      "id": "add_to_cart_text",
+      "label": "Add to Cart Button Text",
+      "default": "Añadir al Carrito"
+    },
+    {
+      "type": "text",
+      "id": "limit_warning_text",
+      "label": "Limit Warning Text",
+      "default": "Has alcanzado el límite para esta categoría. Ingredientes adicionales tendrán costo extra."
+    },
+    {
+      "type": "text",
+      "id": "selected_text",
+      "label": "Selected Text",
+      "default": "Seleccionado"
+    },
+    {
+      "type": "text",
+      "id": "select_text",
+      "label": "Select Text",
+      "default": "Seleccionar"
+    },
+    {
+      "type": "text",
+      "id": "base_text",
+      "label": "Base Price Label",
+      "default": "Bowl base:"
+    },
+    {
+      "type": "text",
+      "id": "extras_text",
+      "label": "Extras Price Label",
+      "default": "Extras:"
+    },
+    {
+      "type": "text",
+      "id": "total_text",
+      "label": "Total Price Label",
+      "default": "Total:"
+    },
+    {
+      "type": "text",
+      "id": "nutrition_text",
+      "label": "Nutrition Info Title",
+      "default": "Información Nutricional:"
+    },
+    {
+      "type": "text",
+      "id": "ingredients_text",
+      "label": "Ingredients Title",
+      "default": "Ingredientes:"
+    },
+    {
+      "type": "text",
+      "id": "order_summary_text",
+      "label": "Order Summary Title",
+      "default": "Resumen del Pedido"
+    },
+    {
+      "type": "header",
+      "content": "Styling Options"
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primary Color",
+      "default": "#22c55e"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#16a34a"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Maximum Width (px)",
+      "min": 800,
+      "max": 1400,
+      "step": 50,
+      "default": 1200
+    }
+  ]
+}
+{% endschema %}
